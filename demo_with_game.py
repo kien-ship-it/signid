@@ -57,15 +57,20 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
     def get_logo_base64(self):
         """Convert logo image to base64 for embedding in HTML"""
         import base64
-        logo_path = "/Users/leduckien/personalproject/signid/resoures/BB Logo.png"
+        import os
+        # Fixed: directory is "resources" not "resoures"
+        logo_path = os.path.join(os.path.dirname(__file__), "resources", "BB Logo.png")
         try:
-            with open(logo_path, "rb") as image_file:
-                encoded_string = base64.b64encode(image_file.read()).decode()
-                return encoded_string
+            if os.path.exists(logo_path):
+                with open(logo_path, "rb") as image_file:
+                    encoded_string = base64.b64encode(image_file.read()).decode()
+                    return encoded_string
+            else:
+                print(f"Logo not found at: {logo_path}")
+                return ""
         except Exception as e:
             print(f"Error loading logo: {e}")
-            # Return a transparent 1x1 pixel PNG as fallback
-            return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            return ""
     
     def do_GET(self):
         """Serve the game console or API endpoints"""
@@ -80,8 +85,9 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
             <!DOCTYPE html>
             <html>
             <head>
-                <title>Sign Language Game Console</title>
+                <title>ASL Recognition Terminal</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
                 <style>
                     * {
                         margin: 0;
@@ -89,85 +95,143 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                         box-sizing: border-box;
                     }
                     body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-                        background: #000000;
+                        font-family: 'JetBrains Mono', 'Courier New', monospace;
+                        background: #0a0e27;
                         min-height: 100vh;
                         padding: 20px;
+                        position: relative;
+                        overflow-x: hidden;
                     }
-                    body.branded {
-                        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                    body::before {
+                        content: '';
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: 
+                            linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                            linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+                        background-size: 20px 20px;
+                        pointer-events: none;
+                        z-index: 0;
+                    }
+                    body.branded::after {
+                        content: '';
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: radial-gradient(circle at 50% 50%, rgba(250, 99, 34, 0.05) 0%, transparent 50%);
+                        pointer-events: none;
+                        z-index: 0;
                     }
                     .container {
-                        max-width: 900px;
+                        max-width: 1000px;
                         margin: 0 auto;
-                        background: #1a1a1a;
-                        border-radius: 20px;
-                        box-shadow: 0 20px 60px rgba(250, 99, 34, 0.3);
-                        overflow: hidden;
+                        background: #0d1117;
                         border: 2px solid #fa6322;
+                        box-shadow: 
+                            0 0 20px rgba(250, 99, 34, 0.3),
+                            inset 0 0 60px rgba(0, 255, 65, 0.02);
+                        position: relative;
+                        z-index: 1;
+                    }
+                    .container::before {
+                        content: '';
+                        position: absolute;
+                        top: -2px;
+                        left: -2px;
+                        right: -2px;
+                        bottom: -2px;
+                        background: linear-gradient(45deg, #fa6322, #00ff41, #fa6322);
+                        background-size: 400% 400%;
+                        z-index: -1;
+                        filter: blur(8px);
+                        opacity: 0.3;
+                        animation: borderGlow 3s ease infinite;
+                    }
+                    @keyframes borderGlow {
+                        0%, 100% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
                     }
                     .branding-toggle {
                         position: fixed;
                         top: 20px;
                         right: 20px;
                         z-index: 1000;
-                        background: rgba(26, 26, 26, 0.95);
+                        background: #0d1117;
                         border: 2px solid #fa6322;
-                        border-radius: 50px;
-                        padding: 12px 20px;
+                        padding: 10px 18px;
                         display: flex;
                         align-items: center;
-                        gap: 10px;
+                        gap: 12px;
                         cursor: pointer;
                         transition: all 0.3s;
+                        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
                     }
                     .branding-toggle:hover {
-                        background: rgba(250, 99, 34, 0.2);
-                        transform: scale(1.05);
+                        background: rgba(250, 99, 34, 0.1);
+                        box-shadow: 0 0 20px rgba(250, 99, 34, 0.4);
                     }
                     .toggle-label {
-                        color: white;
-                        font-size: 14px;
+                        color: #00ff41;
+                        font-size: 11px;
                         font-weight: bold;
                         text-transform: uppercase;
-                        letter-spacing: 1px;
+                        letter-spacing: 2px;
                     }
                     .toggle-switch {
                         position: relative;
-                        width: 50px;
-                        height: 26px;
-                        background: #333;
-                        border-radius: 13px;
-                        transition: background 0.3s;
+                        width: 44px;
+                        height: 20px;
+                        background: #1a1f2e;
+                        border: 2px solid #fa6322;
+                        transition: all 0.3s;
                     }
                     .toggle-switch.active {
                         background: #fa6322;
+                        box-shadow: 0 0 10px rgba(250, 99, 34, 0.6);
                     }
                     .toggle-switch::after {
                         content: '';
                         position: absolute;
-                        width: 20px;
-                        height: 20px;
-                        border-radius: 50%;
-                        background: white;
-                        top: 3px;
-                        left: 3px;
+                        width: 12px;
+                        height: 12px;
+                        background: #00ff41;
+                        top: 2px;
+                        left: 2px;
                         transition: transform 0.3s;
+                        clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
                     }
                     .toggle-switch.active::after {
-                        transform: translateX(24px);
+                        transform: translateX(22px);
                     }
                     .header {
-                        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-                        color: white;
-                        padding: 30px;
-                        text-align: center;
+                        background: linear-gradient(180deg, #0d1117 0%, #161b22 100%);
+                        color: #00ff41;
+                        padding: 25px 30px;
                         position: relative;
-                        border-bottom: 3px solid #fa6322;
+                        border-bottom: 2px solid #fa6322;
+                    }
+                    .header::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        height: 2px;
+                        background: linear-gradient(90deg, transparent, #00ff41, transparent);
+                        animation: scanline 3s linear infinite;
+                    }
+                    @keyframes scanline {
+                        0% { transform: translateX(-100%); }
+                        100% { transform: translateX(100%); }
                     }
                     .logo-container {
                         display: none;
-                        justify-content: center;
+                        justify-content: left;
                         margin-bottom: 15px;
                         opacity: 0;
                         transition: opacity 0.5s;
@@ -177,50 +241,92 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                         opacity: 1;
                     }
                     .logo-container img {
-                        max-width: 150px;
-                        height: auto;
-                        filter: drop-shadow(0 0 10px rgba(250, 99, 34, 0.5));
+                        max-width: 180px;
+                        height: auto;                    }
                     }
                     .header h1 {
-                        font-size: 32px;
-                        margin-bottom: 10px;
-                        background: linear-gradient(135deg, #fa6322 0%, #ffffff 100%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
+                        font-size: 28px;
+                        margin-bottom: 8px;
+                        color: #00ff41;
+                        text-transform: uppercase;
+                        letter-spacing: 4px;
+                        font-family: 'Share Tech Mono', monospace;
+                        text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+                    }
+                    .header h1::before {
+                        content: '> ';
+                        color: #fa6322;
                     }
                     .header p {
-                        opacity: 0.9;
-                        font-size: 16px;
-                        color: #cccccc;
+                        opacity: 0.8;
+                        font-size: 13px;
+                        color: #8b949e;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                    }
+                    .header p::before {
+                        content: '[ ';
+                        color: #fa6322;
+                    }
+                    .header p::after {
+                        content: ' ]';
+                        color: #fa6322;
                     }
                     .status-bar {
-                        background: #0d0d0d;
+                        background: #010409;
                         padding: 20px 30px;
                         border-bottom: 2px solid #fa6322;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+                        font-family: 'Share Tech Mono', monospace;
                     }
                     .status-item {
-                        flex: 1;
-                        text-align: center;
+                        background: #0d1117;
+                        padding: 15px;
+                        border: 2px solid #21262d;
+                        position: relative;
+                        clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+                    }
+                    .status-item::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 8px;
+                        height: 2px;
+                        background: #fa6322;
+                    }
+                    .status-item::after {
+                        content: '';
+                        position: absolute;
+                        bottom: 0;
+                        right: 0;
+                        width: 8px;
+                        height: 2px;
+                        background: #fa6322;
                     }
                     .status-label {
-                        font-size: 12px;
-                        color: #999999;
+                        font-size: 10px;
+                        color: #8b949e;
                         text-transform: uppercase;
-                        letter-spacing: 1px;
-                        margin-bottom: 5px;
+                        letter-spacing: 2px;
+                        margin-bottom: 8px;
+                    }
+                    .status-label::before {
+                        content: '// ';
+                        color: #fa6322;
                     }
                     .status-value {
-                        font-size: 24px;
+                        font-size: 20px;
                         font-weight: bold;
-                        color: #fa6322;
+                        color: #00ff41;
+                        text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
                     }
                     .game-area {
                         padding: 30px;
-                        background: #000000;
+                        background: #0d1117;
+                        min-height: 300px;
                     }
                     .word-display {
                         text-align: center;
@@ -234,98 +340,151 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     }
                     .letter-box {
                         width: 60px;
-                        height: 80px;
-                        border: 3px solid #333333;
-                        border-radius: 10px;
+                        height: 70px;
+                        border: 2px solid #21262d;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        font-size: 36px;
+                        font-size: 32px;
                         font-weight: bold;
-                        color: #666666;
-                        background: #0d0d0d;
+                        color: #484f58;
+                        background: #010409;
                         transition: all 0.3s;
+                        position: relative;
+                        clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+                        font-family: 'Share Tech Mono', monospace;
+                    }
+                    .letter-box::before {
+                        content: '';
+                        position: absolute;
+                        top: 2px;
+                        right: 2px;
+                        width: 6px;
+                        height: 6px;
+                        background: #21262d;
                     }
                     .letter-box.current {
                         border-color: #fa6322;
                         background: rgba(250, 99, 34, 0.1);
                         color: #fa6322;
-                        transform: scale(1.1);
-                        box-shadow: 0 5px 15px rgba(250, 99, 34, 0.5);
+                        transform: scale(1.05);
+                        box-shadow: 
+                            0 0 20px rgba(250, 99, 34, 0.4),
+                            inset 0 0 20px rgba(250, 99, 34, 0.1);
+                        animation: currentPulse 1.5s ease-in-out infinite;
+                    }
+                    .letter-box.current::before {
+                        background: #fa6322;
+                        box-shadow: 0 0 6px #fa6322;
+                    }
+                    @keyframes currentPulse {
+                        0%, 100% { box-shadow: 0 0 20px rgba(250, 99, 34, 0.4), inset 0 0 20px rgba(250, 99, 34, 0.1); }
+                        50% { box-shadow: 0 0 30px rgba(250, 99, 34, 0.6), inset 0 0 30px rgba(250, 99, 34, 0.2); }
                     }
                     .letter-box.completed {
-                        border-color: #ffffff;
-                        background: rgba(255, 255, 255, 0.1);
-                        color: #ffffff;
+                        border-color: #00ff41;
+                        background: rgba(0, 255, 65, 0.1);
+                        color: #00ff41;
+                        box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+                    }
+                    .letter-box.completed::before {
+                        background: #00ff41;
+                        box-shadow: 0 0 6px #00ff41;
                     }
                     .target-letter {
                         margin: 30px 0;
                         text-align: center;
                     }
                     .target-letter-label {
-                        font-size: 14px;
-                        color: #999999;
-                        margin-bottom: 10px;
+                        font-size: 12px;
+                        color: #8b949e;
+                        margin-bottom: 15px;
+                        text-transform: uppercase;
+                        letter-spacing: 3px;
+                    }
+                    .target-letter-label::before {
+                        content: '>>> ';
+                        color: #fa6322;
                     }
                     .target-letter-box {
                         display: inline-block;
-                        width: 120px;
-                        height: 120px;
-                        border: 4px solid #fa6322;
-                        border-radius: 15px;
-                        background: rgba(250, 99, 34, 0.1);
-                        font-size: 72px;
+                        width: 140px;
+                        height: 140px;
+                        border: 3px solid #fa6322;
+                        background: rgba(250, 99, 34, 0.05);
+                        font-size: 80px;
                         font-weight: bold;
                         color: #fa6322;
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        box-shadow: 0 0 30px rgba(250, 99, 34, 0.3);
+                        position: relative;
+                        clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px), 0 15px);
+                        font-family: 'Share Tech Mono', monospace;
+                        text-shadow: 0 0 20px rgba(250, 99, 34, 0.6);
+                    }
+                    .target-letter-box::before {
+                        content: '';
+                        position: absolute;
+                        top: 5px;
+                        right: 5px;
+                        width: 12px;
+                        height: 12px;
+                        background: #fa6322;
+                        clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+                        animation: blink 1s infinite;
+                    }
+                    @keyframes blink {
+                        0%, 50%, 100% { opacity: 1; }
+                        25%, 75% { opacity: 0.3; }
                     }
                     .controls {
                         display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                        grid-template-columns: repeat(2, 1fr);
                         gap: 15px;
                         margin-top: 30px;
                     }
                     button {
-                        padding: 15px 25px;
-                        font-size: 16px;
+                        padding: 14px 20px;
+                        font-size: 13px;
                         font-weight: bold;
-                        border: 2px solid #fa6322;
-                        border-radius: 10px;
+                        border: 2px solid;
                         cursor: pointer;
                         transition: all 0.2s;
                         text-transform: uppercase;
-                        letter-spacing: 1px;
-                        background: #000000;
-                        color: #fa6322;
+                        letter-spacing: 2px;
+                        background: #010409;
+                        font-family: 'JetBrains Mono', monospace;
+                        position: relative;
+                        clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+                    }
+                    button::before {
+                        content: '> ';
                     }
                     .btn-primary {
-                        background: #fa6322;
-                        color: #000000;
+                        border-color: #fa6322;
+                        color: #fa6322;
                     }
                     .btn-primary:hover {
-                        background: #ff7a3d;
-                        box-shadow: 0 5px 20px rgba(250, 99, 34, 0.4);
+                        background: rgba(250, 99, 34, 0.2);
+                        box-shadow: 0 0 20px rgba(250, 99, 34, 0.4);
                     }
                     .btn-success {
-                        background: #ffffff;
-                        color: #000000;
-                        border-color: #ffffff;
+                        border-color: #00ff41;
+                        color: #00ff41;
                     }
                     .btn-success:hover {
-                        background: #f0f0f0;
-                        box-shadow: 0 5px 20px rgba(255, 255, 255, 0.4);
+                        background: rgba(0, 255, 65, 0.1);
+                        box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
                     }
                     .btn-warning {
-                        background: transparent;
-                        color: #fa6322;
-                        border-color: #fa6322;
+                        border-color: #8b949e;
+                        color: #8b949e;
                     }
                     .btn-warning:hover {
-                        background: rgba(250, 99, 34, 0.1);
-                        box-shadow: 0 5px 20px rgba(250, 99, 34, 0.3);
+                        background: rgba(139, 148, 158, 0.1);
+                        border-color: #fa6322;
+                        color: #fa6322;
                     }
                     button:hover {
                         transform: translateY(-2px);
@@ -334,44 +493,46 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                         transform: translateY(0);
                     }
                     .input-section {
-                        background: #0d0d0d;
+                        background: #010409;
                         padding: 20px;
-                        border-radius: 10px;
                         margin-top: 20px;
-                        border: 2px solid #333333;
+                        border: 2px solid #21262d;
+                        clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
                     }
                     input[type="text"] {
                         width: 100%;
-                        padding: 12px;
-                        font-size: 16px;
+                        padding: 12px 15px;
+                        font-size: 14px;
                         border: 2px solid #fa6322;
-                        border-radius: 8px;
-                        margin-bottom: 10px;
+                        margin-bottom: 12px;
                         text-transform: uppercase;
-                        background: #000000;
-                        color: #ffffff;
+                        background: #0d1117;
+                        color: #00ff41;
+                        font-family: 'JetBrains Mono', monospace;
+                        letter-spacing: 2px;
                     }
                     input[type="text"]:focus {
                         outline: none;
-                        border-color: #ff7a3d;
-                        box-shadow: 0 0 15px rgba(250, 99, 34, 0.3);
+                        box-shadow: 0 0 15px rgba(250, 99, 34, 0.4);
                     }
                     input[type="text"]::placeholder {
-                        color: #666666;
+                        color: #484f58;
+                        letter-spacing: 1px;
                     }
                     .message {
                         text-align: center;
                         padding: 20px;
                         margin: 20px 0;
-                        border-radius: 10px;
-                        font-size: 18px;
+                        font-size: 16px;
                         font-weight: bold;
                         border: 2px solid;
+                        clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
                     }
                     .message.success {
-                        background: rgba(255, 255, 255, 0.1);
-                        color: #ffffff;
-                        border-color: #ffffff;
+                        background: rgba(0, 255, 65, 0.1);
+                        color: #00ff41;
+                        border-color: #00ff41;
+                        box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
                     }
                     .message.info {
                         background: rgba(250, 99, 34, 0.1);
@@ -380,39 +541,48 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     }
                     .inactive-message {
                         text-align: center;
-                        color: #999999;
-                        font-size: 18px;
+                        color: #484f58;
+                        font-size: 14px;
                         padding: 40px 20px;
+                        letter-spacing: 1px;
+                    }
+                    .inactive-message::before {
+                        content: '// ';
+                        color: #fa6322;
                     }
                     @keyframes pulse {
                         0%, 100% { opacity: 1; transform: scale(1); }
-                        50% { opacity: 0.7; transform: scale(1.05); }
+                        50% { opacity: 0.8; transform: scale(1.02); }
                     }
                     .pulsing {
                         animation: pulse 2s infinite;
                     }
                     @keyframes glow {
-                        0%, 100% { box-shadow: 0 0 20px rgba(250, 99, 34, 0.3); }
-                        50% { box-shadow: 0 0 40px rgba(250, 99, 34, 0.6); }
+                        0%, 100% { box-shadow: 0 0 30px rgba(250, 99, 34, 0.4); }
+                        50% { box-shadow: 0 0 50px rgba(250, 99, 34, 0.6); }
                     }
                     .header.branded {
                         animation: glow 3s infinite;
+                    }
+                    /* Terminal cursor effect */
+                    @keyframes cursor {
+                        0%, 100% { opacity: 1; }
+                        50% { opacity: 0; }
                     }
                 </style>
             </head>
             <body>
                 <div class="branding-toggle" onclick="toggleBranding()">
-                    <span class="toggle-label">Branding</span>
                     <div class="toggle-switch" id="brandingSwitch"></div>
                 </div>
                 
                 <div class="container">
                     <div class="header" id="header">
                         <div class="logo-container" id="logoContainer">
-                            <img src="data:image/png;base64,""" + self.get_logo_base64() + """" alt="Company Logo" id="logo">
+                            <img src="data:image/png;base64,""" + self.get_logo_base64() + """" alt="BB Logo" id="logo">
                         </div>
-                        <h1>🤟 Sign Language Game</h1>
-                        <p>Practice ASL alphabet recognition</p>
+                        <h1>ASL Recognition Terminal</h1>
+                        <p>Neural Sign Detection v2.0</p>
                     </div>
                     
                     <div class="status-bar">

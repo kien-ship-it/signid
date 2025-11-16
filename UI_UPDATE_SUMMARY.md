@@ -1,133 +1,204 @@
-# Web UI Update Summary
+# Web UI Update Summary - Hacker/Programmer Theme
 
 ## Overview
 
-Updated the web game interface in `demo_with_game.py` with a modern black theme featuring orange (#fa6322) and white accents, plus company branding integration.
+Redesigned the web game interface in `demo_with_game.py` with a **boxy, robotic, hacker/programmer aesthetic** featuring:
 
-## Key Changes
+- Dark terminal-inspired theme
+- Orange (#fa6322) primary accent
+- Green (#00ff41) for completed states and status values
+- Monospace fonts (JetBrains Mono, Share Tech Mono)
+- Angular, geometric shapes with clip-path effects
 
-### 1. **Color Scheme**
+## Key Design Elements
 
-- **Background**: Black (#000000) with dark gradients (#1a1a1a, #0d0d0d)
-- **Primary Accent**: Orange (#fa6322)
-- **Secondary Accent**: White (#ffffff)
-- **Text Colors**: White, light gray (#999999, #cccccc), and orange for highlights
+### 🎨 **Color Palette**
 
-### 2. **Branding Toggle**
+- **Background**: Deep dark blues (#0a0e27, #0d1117, #010409)
+- **Primary Accent**: Orange (#fa6322) for borders, current state, and highlights
+- **Success/Complete**: Bright green (#00ff41) for completed letters and status values
+- **Text**: Gray scale (#8b949e, #484f58) for secondary text
+- **Grid Pattern**: Subtle green grid overlay for terminal feel
 
-- Added a floating toggle button (top-right corner)
-- Toggles company branding on/off
-- State persists using localStorage
-- Features:
-  - Shows/hides company logo (BB Logo.png)
-  - Enables/disables glow effect on header
-  - Changes background gradient when enabled
+### 🔲 **Boxy/Angular Design**
 
-### 3. **Company Logo Integration**
+- **Clip-path polygons**: All major elements use angular corners (no border-radius)
+- **Cut corners**: Buttons, containers, and boxes have diagonal cuts
+- **Geometric shapes**: Diamond indicators, hexagonal toggle switch marker
+- **Terminal blocks**: Status items look like code blocks with decorative corners
 
-- Logo converted to base64 and embedded in HTML
-- Displayed in header when branding is enabled
-- Drop shadow effect with orange glow
-- Smooth fade-in/fade-out animation
+### 💻 **Hacker/Programmer Aesthetic**
 
-### 4. **Visual Enhancements**
+#### Typography
+
+- **JetBrains Mono**: Main UI font (coding font)
+- **Share Tech Mono**: Headers and special elements
+- **All caps**: Uppercase labels with increased letter-spacing
+- **Prefixes**: Code-style prefixes (`>`, `//`, `>>>`, `[ ]`)
+
+#### Visual Effects
+
+- **Scanline animation**: Moving line across header
+- **Grid background**: Subtle green grid pattern
+- **Glow effects**: Neon-style glows on active elements
+- **Pulsing animations**: Current letter pulses with orange glow
+- **Blinking cursor**: Diamond shape in target letter box
+
+### 🎯 **Component Breakdown**
+
+#### Header
+
+- Title: "ASL RECOGNITION TERMINAL"
+- Subtitle: "[ NEURAL SIGN DETECTION V2.0 ]"
+- Scanline animation across top
+- Orange `>` prefix on title
+- Bracket-wrapped subtitle
 
 #### Status Bar
 
-- Dark background (#0d0d0d)
-- Orange text for values
-- Orange border accent
+- 3-column grid layout
+- Boxy containers with cut corners
+- Orange decorative accents on corners
+- Green values with text-shadow glow
+- Gray `//` prefix on labels
 
 #### Letter Boxes
 
-- Current letter: Orange border with glow effect
-- Completed letters: White border and text
-- Inactive letters: Dark gray
+- **Inactive**: Dark with gray border
+- **Current**: Orange border, pulsing glow animation, orange corner indicator
+- **Completed**: GREEN border and text with glow effect, green corner indicator
+- Angular cut corners (clip-path)
+- Monospace font
 
 #### Target Letter Display
 
-- Large orange-bordered box
-- Pulsing animation with scale effect
-- Orange glow shadow
+- Large angular box with cut corners
+- Orange border with glow
+- Blinking diamond indicator (top-right)
+- `>>>` prefix on label
+- Orange text with glow
 
 #### Buttons
 
-- Primary: Orange background with black text
-- Success: White background with black text
-- Warning: Transparent with orange border
-- All buttons have hover effects and shadows
+- Angular shape (cut bottom-left corner)
+- `>` prefix on all button text
+- **Primary**: Orange border/text
+- **Success**: GREEN border/text (custom word)
+- **Warning**: Gray border that turns orange on hover
+- Hover effects with glow
 
-#### Input Fields
+#### Input Field
 
-- Black background with white text
+- Angular border
 - Orange border
+- GREEN text on dark background
+- Monospace font
 - Glow effect on focus
 
-### 5. **Animations**
+### 🏢 **Branding Features**
 
-- **Pulse**: Enhanced with scale transform for target letter
-- **Glow**: Header glow effect when branding is enabled
-- **Hover**: All interactive elements have smooth transitions
+#### Logo Integration
 
-### 6. **Technical Implementation**
+- Fixed logo path to use relative path
+- Base64 embedded in HTML
+- Orange drop-shadow glow
+- Smooth fade-in when enabled
 
-#### New Method Added
+#### Branding Toggle
 
-```python
-def get_logo_base64(self):
-    """Convert logo image to base64 for embedding in HTML"""
-```
+- **Position**: Fixed top-right corner
+- **Style**: Angular box with cut corner
+- **Label**: "BRAND" in green
+- **Switch**: Rectangular with diamond-shaped green indicator
+- **Persistence**: Saves state in localStorage
 
-- Converts BB Logo.png to base64
-- Fallback to transparent pixel if logo not found
+#### Branded Effects
 
-#### JavaScript Functions
+- Logo visibility
+- Enhanced glow on header
+- Radial gradient overlay
 
-- `initBranding()`: Initialize branding state from localStorage
-- `toggleBranding()`: Toggle branding on/off
-- `updateBrandingUI()`: Update UI based on branding state
+### ✨ **Animations**
 
-## Usage
+1. **borderGlow**: Animated gradient border on container
+2. **scanline**: Moving line across header
+3. **currentPulse**: Pulsing glow on current letter
+4. **blink**: Blinking diamond indicator
+5. **cursor**: Terminal cursor blink effect
 
-### Toggle Branding
+### 🎮 **Green Accents for Progress**
 
-Click the "BRANDING" toggle button in the top-right corner to:
+Green (#00ff41) is specifically used for:
 
-- Show/hide company logo
-- Enable/disable branded styling effects
+- ✅ **Completed letters**: Green border, green text, green glow
+- ✅ **Status values**: All status bar values are green
+- ✅ **Success messages**: Green border and text
+- ✅ **Custom word button**: Green border/text
+- ✅ **Input text**: GREEN typed text
+- ✅ **Toggle label**: "BRAND" in green
+- ✅ **Success completion message**: Green themed
 
-### How It Looks
+This creates a clear visual distinction:
 
-- **Branding ON**: Logo visible, enhanced glow effects, gradient background
-- **Branding OFF**: Clean interface without logo, solid black background
+- **Orange** = Active/In Progress/Warning
+- **Green** = Completed/Success/Ready
+- **Gray** = Inactive/Disabled
+
+## Technical Implementation
+
+### Fonts
+
+Loaded from Google Fonts:
+
+- JetBrains Mono (coding font)
+- Share Tech Mono (tech/terminal font)
+
+### CSS Features
+
+- CSS clip-path for angular shapes
+- Multiple box-shadows for glow effects
+- CSS Grid for layouts
+- CSS animations and keyframes
+- CSS custom properties for consistent styling
+- Pseudo-elements (::before, ::after) for decorative elements
+
+### JavaScript
+
+- Branding toggle with localStorage persistence
+- Real-time UI updates (200ms interval)
+- Dynamic content generation
+- Keyboard event handling (Enter key)
 
 ## File Structure
 
 ```
 signid/
-├── demo_with_game.py       # Updated with new UI
+├── demo_with_game.py           # Updated with hacker UI theme
 ├── resoures/
-│   └── BB Logo.png         # Company logo
-└── UI_UPDATE_SUMMARY.md    # This file
+│   └── BB Logo.png             # Company logo (fixed path)
+└── UI_UPDATE_SUMMARY.md        # This file
 ```
 
-## Color Reference
+## Usage
 
-- **Primary Orange**: #fa6322
-- **Light Orange**: #ff7a3d (hover states)
-- **Pure White**: #ffffff
-- **Pure Black**: #000000
-- **Dark Gray**: #1a1a1a (containers)
-- **Darker Gray**: #0d0d0d (sections)
-- **Border Gray**: #333333
-- **Text Gray**: #999999, #cccccc
+1. **Run the application**: `python3 demo_with_game.py`
+2. **Access web UI**: Opens automatically at `http://localhost:8765`
+3. **Toggle branding**: Click "BRAND" toggle in top-right corner
+4. **Visual feedback**:
+   - Current letter: Orange with pulsing glow
+   - Completed letters: GREEN with steady glow
+   - Status values: Always green for easy reading
 
 ## Design Philosophy
 
-The new design creates a premium, modern gaming experience with:
+The interface embodies a **retro-futuristic hacker terminal** aesthetic:
 
-- High contrast for better readability
-- Orange accents to draw attention to key elements
-- Smooth animations for polish
-- Professional branding integration
-- User control over branding visibility
+- **No curves**: Everything is angular and geometric
+- **Monospace everywhere**: Authentic coding feel
+- **Minimal color**: Dark background with strategic orange/green highlights
+- **Code-like syntax**: Prefixes and brackets like programming
+- **Glowing effects**: Neon-style sci-fi atmosphere
+- **Grid background**: Matrix/terminal style
+- **Boxy containers**: Like command-line windows
+
+Perfect for a modern coding/robotics/AI sign language recognition system!
