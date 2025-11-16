@@ -16,7 +16,7 @@ This guide will help you install dependencies and run the different applications
 ## 🖥️ System Requirements
 
 - **Operating System**: macOS, Linux, or Windows
-- **Python**: Python 3.8 or higher
+- **Python**: Python 3.8 to 3.12 (mediapipe does not support Python 3.13+)
 - **Camera**: Working webcam
 - **Browser**: Modern web browser (Chrome, Firefox, Safari, Edge)
 
@@ -30,8 +30,8 @@ This guide will help you install dependencies and run the different applications
 # Navigate to the project directory
 cd signid
 
-# Create virtual environment
-python3 -m venv venv
+# Create virtual environment with Python 3.12 (mediapipe requires Python 3.12 or lower)
+python3.12 -m venv venv
 
 # Activate virtual environment
 # On macOS/Linux:
@@ -70,22 +70,26 @@ pip install opencv-python
 
 # numpy - Numerical operations
 pip install numpy
+
+# scikit-learn - Machine learning library for model predictions
+pip install scikit-learn
 ```
 
 #### Library Descriptions
 
-| Library           | Version | Purpose                                                 |
-| ----------------- | ------- | ------------------------------------------------------- |
-| **joblib**        | Latest  | Load pre-trained machine learning models (`.pkl` files) |
-| **mediapipe**     | Latest  | Google's hand landmark detection and tracking           |
-| **opencv-python** | Latest  | Camera capture, image processing, and display           |
-| **numpy**         | Latest  | Array operations and numerical computations             |
+| Library           | Version     | Purpose                                                 |
+| ----------------- | ----------- | ------------------------------------------------------- |
+| **joblib**        | >=1.5.2     | Load pre-trained machine learning models (`.pkl` files) |
+| **mediapipe**     | >=0.10.21   | Google's hand landmark detection and tracking           |
+| **opencv-python** | >=4.11.0    | Camera capture, image processing, and display           |
+| **numpy**         | >=1.26.4,<2 | Array operations and numerical computations             |
+| **scikit-learn**  | >=1.7.2     | Machine learning algorithms and model training          |
 
 ### Step 3: Verify Installation
 
 ```bash
 # Test if all libraries are installed correctly
-python3 -c "import joblib, mediapipe, cv2, numpy; print('✅ All libraries installed successfully!')"
+python3 -c "import joblib, mediapipe, cv2, numpy, sklearn; print('✅ All libraries installed successfully!')"
 ```
 
 If you see `✅ All libraries installed successfully!`, you're ready to go!
@@ -350,9 +354,10 @@ The instruction image (`handSignInstructions.png`) shows the ASL alphabet hand s
 
 ```bash
 # 1. Setup (first time only)
-python3 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install joblib mediapipe opencv-python numpy
+pip install --upgrade pip
+pip install -r requirements.txt
 
 # 2. Run basic demo
 python3 demo.py
@@ -373,8 +378,9 @@ If you encounter issues not covered here:
 1. Check if all dependencies are installed correctly
 2. Verify camera permissions are granted
 3. Try running `test_camera_fps.py` to diagnose camera issues
-4. Ensure Python version is 3.8 or higher: `python3 --version`
-5. Check console output for specific error messages
+4. Ensure Python version is 3.8 to 3.12 (not 3.13+): `python3 --version`
+5. If using Python 3.13+, recreate your venv with Python 3.12: `python3.12 -m venv venv`
+6. Check console output for specific error messages
 
 ---
 

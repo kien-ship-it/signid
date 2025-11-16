@@ -1,5 +1,6 @@
 # Sign Language Recognition - Python Dependencies
-# Compatible with Python 3.12 on macOS ARM64 (Apple Silicon)
+# Compatible with Python 3.8 to 3.12 (mediapipe does NOT support Python 3.13+)
+# Tested on macOS ARM64 (Apple Silicon), Linux, and Windows
 
 joblib>=1.5.2
 mediapipe>=0.10.21
