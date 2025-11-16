@@ -54,6 +54,19 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
         """Suppress server logs"""
         pass
     
+    def get_logo_base64(self):
+        """Convert logo image to base64 for embedding in HTML"""
+        import base64
+        logo_path = "/Users/leduckien/personalproject/signid/resoures/BB Logo.png"
+        try:
+            with open(logo_path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                return encoded_string
+        except Exception as e:
+            print(f"Error loading logo: {e}")
+            # Return a transparent 1x1 pixel PNG as fallback
+            return "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    
     def do_GET(self):
         """Serve the game console or API endpoints"""
         global word_input_result
@@ -77,36 +90,114 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     }
                     body {
                         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #000000;
                         min-height: 100vh;
                         padding: 20px;
                     }
+                    body.branded {
+                        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                    }
                     .container {
-                        max-width: 800px;
+                        max-width: 900px;
                         margin: 0 auto;
-                        background: white;
+                        background: #1a1a1a;
                         border-radius: 20px;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                        box-shadow: 0 20px 60px rgba(250, 99, 34, 0.3);
                         overflow: hidden;
+                        border: 2px solid #fa6322;
+                    }
+                    .branding-toggle {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        z-index: 1000;
+                        background: rgba(26, 26, 26, 0.95);
+                        border: 2px solid #fa6322;
+                        border-radius: 50px;
+                        padding: 12px 20px;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    }
+                    .branding-toggle:hover {
+                        background: rgba(250, 99, 34, 0.2);
+                        transform: scale(1.05);
+                    }
+                    .toggle-label {
+                        color: white;
+                        font-size: 14px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    }
+                    .toggle-switch {
+                        position: relative;
+                        width: 50px;
+                        height: 26px;
+                        background: #333;
+                        border-radius: 13px;
+                        transition: background 0.3s;
+                    }
+                    .toggle-switch.active {
+                        background: #fa6322;
+                    }
+                    .toggle-switch::after {
+                        content: '';
+                        position: absolute;
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background: white;
+                        top: 3px;
+                        left: 3px;
+                        transition: transform 0.3s;
+                    }
+                    .toggle-switch.active::after {
+                        transform: translateX(24px);
                     }
                     .header {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
                         color: white;
                         padding: 30px;
                         text-align: center;
+                        position: relative;
+                        border-bottom: 3px solid #fa6322;
+                    }
+                    .logo-container {
+                        display: none;
+                        justify-content: center;
+                        margin-bottom: 15px;
+                        opacity: 0;
+                        transition: opacity 0.5s;
+                    }
+                    .logo-container.visible {
+                        display: flex;
+                        opacity: 1;
+                    }
+                    .logo-container img {
+                        max-width: 150px;
+                        height: auto;
+                        filter: drop-shadow(0 0 10px rgba(250, 99, 34, 0.5));
                     }
                     .header h1 {
                         font-size: 32px;
                         margin-bottom: 10px;
+                        background: linear-gradient(135deg, #fa6322 0%, #ffffff 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
                     }
                     .header p {
                         opacity: 0.9;
                         font-size: 16px;
+                        color: #cccccc;
                     }
                     .status-bar {
-                        background: #f8f9fa;
+                        background: #0d0d0d;
                         padding: 20px 30px;
-                        border-bottom: 2px solid #e9ecef;
+                        border-bottom: 2px solid #fa6322;
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
@@ -117,7 +208,7 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     }
                     .status-label {
                         font-size: 12px;
-                        color: #6c757d;
+                        color: #999999;
                         text-transform: uppercase;
                         letter-spacing: 1px;
                         margin-bottom: 5px;
@@ -125,10 +216,11 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     .status-value {
                         font-size: 24px;
                         font-weight: bold;
-                        color: #333;
+                        color: #fa6322;
                     }
                     .game-area {
                         padding: 30px;
+                        background: #000000;
                     }
                     .word-display {
                         text-align: center;
@@ -143,28 +235,28 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     .letter-box {
                         width: 60px;
                         height: 80px;
-                        border: 3px solid #dee2e6;
+                        border: 3px solid #333333;
                         border-radius: 10px;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         font-size: 36px;
                         font-weight: bold;
-                        color: #adb5bd;
-                        background: #f8f9fa;
+                        color: #666666;
+                        background: #0d0d0d;
                         transition: all 0.3s;
                     }
                     .letter-box.current {
-                        border-color: #667eea;
-                        background: #e7f0ff;
-                        color: #667eea;
+                        border-color: #fa6322;
+                        background: rgba(250, 99, 34, 0.1);
+                        color: #fa6322;
                         transform: scale(1.1);
-                        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+                        box-shadow: 0 5px 15px rgba(250, 99, 34, 0.5);
                     }
                     .letter-box.completed {
-                        border-color: #38ef7d;
-                        background: #d4f4e2;
-                        color: #11998e;
+                        border-color: #ffffff;
+                        background: rgba(255, 255, 255, 0.1);
+                        color: #ffffff;
                     }
                     .target-letter {
                         margin: 30px 0;
@@ -172,22 +264,23 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                     }
                     .target-letter-label {
                         font-size: 14px;
-                        color: #6c757d;
+                        color: #999999;
                         margin-bottom: 10px;
                     }
                     .target-letter-box {
                         display: inline-block;
                         width: 120px;
                         height: 120px;
-                        border: 4px solid #667eea;
+                        border: 4px solid #fa6322;
                         border-radius: 15px;
-                        background: #e7f0ff;
+                        background: rgba(250, 99, 34, 0.1);
                         font-size: 72px;
                         font-weight: bold;
-                        color: #667eea;
+                        color: #fa6322;
                         display: flex;
                         align-items: center;
                         justify-content: center;
+                        box-shadow: 0 0 30px rgba(250, 99, 34, 0.3);
                     }
                     .controls {
                         display: grid;
@@ -199,50 +292,72 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                         padding: 15px 25px;
                         font-size: 16px;
                         font-weight: bold;
-                        border: none;
+                        border: 2px solid #fa6322;
                         border-radius: 10px;
                         cursor: pointer;
                         transition: all 0.2s;
                         text-transform: uppercase;
                         letter-spacing: 1px;
+                        background: #000000;
+                        color: #fa6322;
                     }
                     .btn-primary {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
+                        background: #fa6322;
+                        color: #000000;
+                    }
+                    .btn-primary:hover {
+                        background: #ff7a3d;
+                        box-shadow: 0 5px 20px rgba(250, 99, 34, 0.4);
                     }
                     .btn-success {
-                        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                        color: white;
+                        background: #ffffff;
+                        color: #000000;
+                        border-color: #ffffff;
+                    }
+                    .btn-success:hover {
+                        background: #f0f0f0;
+                        box-shadow: 0 5px 20px rgba(255, 255, 255, 0.4);
                     }
                     .btn-warning {
-                        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-                        color: white;
+                        background: transparent;
+                        color: #fa6322;
+                        border-color: #fa6322;
+                    }
+                    .btn-warning:hover {
+                        background: rgba(250, 99, 34, 0.1);
+                        box-shadow: 0 5px 20px rgba(250, 99, 34, 0.3);
                     }
                     button:hover {
                         transform: translateY(-2px);
-                        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                     }
                     button:active {
                         transform: translateY(0);
                     }
                     .input-section {
-                        background: #f8f9fa;
+                        background: #0d0d0d;
                         padding: 20px;
                         border-radius: 10px;
                         margin-top: 20px;
+                        border: 2px solid #333333;
                     }
                     input[type="text"] {
                         width: 100%;
                         padding: 12px;
                         font-size: 16px;
-                        border: 2px solid #dee2e6;
+                        border: 2px solid #fa6322;
                         border-radius: 8px;
                         margin-bottom: 10px;
                         text-transform: uppercase;
+                        background: #000000;
+                        color: #ffffff;
                     }
                     input[type="text"]:focus {
                         outline: none;
-                        border-color: #667eea;
+                        border-color: #ff7a3d;
+                        box-shadow: 0 0 15px rgba(250, 99, 34, 0.3);
+                    }
+                    input[type="text"]::placeholder {
+                        color: #666666;
                     }
                     .message {
                         text-align: center;
@@ -251,34 +366,52 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                         border-radius: 10px;
                         font-size: 18px;
                         font-weight: bold;
+                        border: 2px solid;
                     }
                     .message.success {
-                        background: #d4f4e2;
-                        color: #11998e;
+                        background: rgba(255, 255, 255, 0.1);
+                        color: #ffffff;
+                        border-color: #ffffff;
                     }
                     .message.info {
-                        background: #e7f0ff;
-                        color: #667eea;
+                        background: rgba(250, 99, 34, 0.1);
+                        color: #fa6322;
+                        border-color: #fa6322;
                     }
                     .inactive-message {
                         text-align: center;
-                        color: #6c757d;
+                        color: #999999;
                         font-size: 18px;
                         padding: 40px 20px;
                     }
                     @keyframes pulse {
-                        0%, 100% { opacity: 1; }
-                        50% { opacity: 0.5; }
+                        0%, 100% { opacity: 1; transform: scale(1); }
+                        50% { opacity: 0.7; transform: scale(1.05); }
                     }
                     .pulsing {
                         animation: pulse 2s infinite;
                     }
+                    @keyframes glow {
+                        0%, 100% { box-shadow: 0 0 20px rgba(250, 99, 34, 0.3); }
+                        50% { box-shadow: 0 0 40px rgba(250, 99, 34, 0.6); }
+                    }
+                    .header.branded {
+                        animation: glow 3s infinite;
+                    }
                 </style>
             </head>
             <body>
+                <div class="branding-toggle" onclick="toggleBranding()">
+                    <span class="toggle-label">Branding</span>
+                    <div class="toggle-switch" id="brandingSwitch"></div>
+                </div>
+                
                 <div class="container">
-                    <div class="header">
-                        <h1> Sign Language Game</h1>
+                    <div class="header" id="header">
+                        <div class="logo-container" id="logoContainer">
+                            <img src="data:image/png;base64,""" + self.get_logo_base64() + """" alt="Company Logo" id="logo">
+                        </div>
+                        <h1>🤟 Sign Language Game</h1>
                         <p>Practice ASL alphabet recognition</p>
                     </div>
                     
@@ -325,6 +458,39 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                 
                 <script>
                     let currentGameState = null;
+                    let brandingEnabled = true;
+                    
+                    // Initialize branding state
+                    function initBranding() {
+                        const saved = localStorage.getItem('brandingEnabled');
+                        brandingEnabled = saved === null ? true : saved === 'true';
+                        updateBrandingUI();
+                    }
+                    
+                    function toggleBranding() {
+                        brandingEnabled = !brandingEnabled;
+                        localStorage.setItem('brandingEnabled', brandingEnabled);
+                        updateBrandingUI();
+                    }
+                    
+                    function updateBrandingUI() {
+                        const logo = document.getElementById('logoContainer');
+                        const header = document.getElementById('header');
+                        const brandingSwitch = document.getElementById('brandingSwitch');
+                        const body = document.body;
+                        
+                        if (brandingEnabled) {
+                            logo.classList.add('visible');
+                            header.classList.add('branded');
+                            brandingSwitch.classList.add('active');
+                            body.classList.add('branded');
+                        } else {
+                            logo.classList.remove('visible');
+                            header.classList.remove('branded');
+                            brandingSwitch.classList.remove('active');
+                            body.classList.remove('branded');
+                        }
+                    }
                     
                     function updateUI() {
                         fetch('/api/state')
@@ -365,7 +531,7 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                                     
                                     gameArea.innerHTML = html;
                                 } else if (state.completed === state.total && state.total > 0) {
-                                    gameArea.innerHTML = '<div class="message success"> Congratulations! You completed the word: ' + state.word + '</div>';
+                                    gameArea.innerHTML = '<div class="message success">🎉 Congratulations! You completed the word: ' + state.word + '</div>';
                                 } else {
                                     gameArea.innerHTML = '<div class="inactive-message">Press a button below to start playing!</div>';
                                 }
@@ -405,6 +571,9 @@ class WebConsoleHandler(BaseHTTPRequestHandler):
                             startCustomGame();
                         }
                     });
+                    
+                    // Initialize branding on page load
+                    initBranding();
                     
                     // Update UI every 200ms
                     setInterval(updateUI, 200);

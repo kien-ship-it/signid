@@ -48,7 +48,10 @@ venv\Scripts\activate
 pip install --upgrade pip
 
 # Install all required libraries
-pip install joblib mediapipe opencv-python numpy
+pip install -r requirements.txt
+
+# Or install individually:
+# pip install joblib mediapipe opencv-python numpy scikit-learn
 ```
 
 #### Individual Library Installation

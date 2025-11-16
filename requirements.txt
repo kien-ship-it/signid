@@ -1,0 +1,8 @@
+# Sign Language Recognition - Python Dependencies
+# Compatible with Python 3.12 on macOS ARM64 (Apple Silicon)
+
+joblib>=1.5.2
+mediapipe>=0.10.21
+opencv-python>=4.11.0
+numpy>=1.26.4,<2
+scikit-learn>=1.7.2
