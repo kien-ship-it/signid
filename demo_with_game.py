@@ -11,6 +11,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlparse
 from utils import draw_landmarks_on_image, add_transparent_image
+from platform_utils import initialize_camera, find_instruction_image, get_platform_info
 
 # Load the trained models
 with open("archive/predictor_v1.pkl", "rb") as f:
@@ -884,28 +885,19 @@ def run_camera_feed():
         min_tracking_confidence=0.5,
     )
 
-    # Initialize camera with AVFoundation backend for better performance on macOS
-    cam = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-    if not cam.isOpened():
-        print("Error: Could not open camera")
+    # Initialize camera with cross-platform support
+    try:
+        cam, camera_fps, width, height, backend_name = initialize_camera(camera_index=0, target_fps=60)
+        print(f"Camera configured:")
+        print(f"  Resolution: {width}x{height}")
+        print(f"  FPS: {camera_fps}")
+        print(f"  Backend: {backend_name}")
+    except RuntimeError as e:
+        print(f"Error: {e}")
         return
-
-    # Set camera to highest FPS possible
-    cam.set(cv2.CAP_PROP_FPS, 60)  # Request 60 FPS
-    cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))  # Use MJPG codec for higher FPS
-    cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer to reduce latency
 
     timestamp = 0
     frame_count = 0
-    
-    # Get actual camera FPS after configuration
-    camera_fps = cam.get(cv2.CAP_PROP_FPS)
-    width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    print(f"Camera configured:")
-    print(f"  Resolution: {width}x{height}")
-    print(f"  FPS: {camera_fps}")
-    print(f"  Backend: AVFoundation")
 
     # FPS measurement variables
     fps_start_time = time.time()
@@ -1096,6 +1088,15 @@ def update_camera_display():
 def main():
     global camera_running, word_input_server
     
+    # Print platform information
+    platform_info = get_platform_info()
+    print("\n" + "="*60)
+    print("PLATFORM INFORMATION:")
+    print(f"  System: {platform_info['system']} {platform_info['release']}")
+    print(f"  Machine: {platform_info['machine']}")
+    print(f"  Python: {platform_info['python_version']}")
+    print("="*60 + "\n")
+    
     # Start web console server
     def run_server():
         """Run HTTP server in background"""
@@ -1114,14 +1115,18 @@ def main():
     # Open web console in browser
     webbrowser.open(f'http://localhost:{web_console_port}')
     
-    # Display instruction image
-    image_path = "/Users/leduckien/Downloads/handSignInstructions.png"
-    try:
-        image = cv2.imread(image_path)
-        if image is not None:
-            cv2.imshow("Hand Sign Instructions", image)
-    except Exception as e:
-        print(f"Could not load instruction image: {e}")
+    # Display instruction image (cross-platform)
+    image_path = find_instruction_image()
+    if image_path:
+        try:
+            image = cv2.imread(image_path)
+            if image is not None:
+                cv2.imshow("Hand Sign Instructions", image)
+                print(f"📖 Instruction image loaded from: {image_path}")
+        except Exception as e:
+            print(f"Could not load instruction image: {e}")
+    else:
+        print("⚠️  Hand sign instruction image not found")
     
     # Start camera in a separate thread
     camera_thread = threading.Thread(target=run_camera_feed, daemon=True)

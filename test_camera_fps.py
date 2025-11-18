@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 """
 Test script to measure actual camera FPS and display refresh rate
+Cross-platform compatible version
 """
 import cv2
 import time
+from platform_utils import initialize_camera, get_platform_info
 
 print("Testing camera FPS and display refresh rate...")
 print("=" * 60)
 
-# Test with AVFoundation backend (macOS optimized)
-cam = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-
-# Try to set high FPS
-cam.set(cv2.CAP_PROP_FPS, 60)
-cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-# Get actual settings
-actual_fps = cam.get(cv2.CAP_PROP_FPS)
-width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-backend = cam.getBackendName()
-
-print(f"Camera Settings:")
-print(f"  Backend: {backend}")
-print(f"  Resolution: {width}x{height}")
-print(f"  Reported FPS: {actual_fps}")
+# Print platform information
+platform_info = get_platform_info()
+print(f"Platform: {platform_info['system']} {platform_info['release']}")
+print(f"Machine: {platform_info['machine']}")
+print(f"Python: {platform_info['python_version']}")
 print("=" * 60)
+
+# Initialize camera with cross-platform support
+try:
+    cam, actual_fps, width, height, backend_name = initialize_camera(camera_index=0, target_fps=60)
+    print(f"\nCamera Settings:")
+    print(f"  Backend: {backend_name}")
+    print(f"  Resolution: {width}x{height}")
+    print(f"  Reported FPS: {actual_fps}")
+    print("=" * 60)
+except RuntimeError as e:
+    print(f"Error: {e}")
+    exit(1)
 
 # Create optimized window
 cv2.namedWindow("FPS Test", cv2.WINDOW_NORMAL)

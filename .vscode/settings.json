@@ -5,5 +5,6 @@
 	"notebook.formatOnSave.enabled": true,
 	"python.terminal.activateEnvironment": false,
 	"python.analysis.autoImportCompletions": true,
-	"terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "kiroAgent.configureMCP": "Disabled",
 }

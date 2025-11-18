@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import time
 from utils import draw_landmarks_on_image, add_transparent_image
+from platform_utils import initialize_camera, find_instruction_image, get_platform_info
 
 with open("archive/predictor_v1.pkl", "rb") as f:
 	classifier = joblib.load(f)
@@ -23,10 +24,27 @@ tracked_hand_index = None
 no_hand_counter = 0
 NO_HAND_THRESHOLD = 1  # Number of consecutive frames with no hands before resetting
 
-image_path = "/Users/leduckien/Downloads/handSignInstructions.png"
-image = cv2.imread(image_path)
-# Display instruction image
-cv2.imshow("Hand Sign Instructions", image)
+# Print platform information
+platform_info = get_platform_info()
+print("\n" + "="*60)
+print("PLATFORM INFORMATION:")
+print(f"  System: {platform_info['system']} {platform_info['release']}")
+print(f"  Machine: {platform_info['machine']}")
+print(f"  Python: {platform_info['python_version']}")
+print("="*60 + "\n")
+
+# Display instruction image (cross-platform)
+image_path = find_instruction_image()
+if image_path:
+	try:
+		image = cv2.imread(image_path)
+		if image is not None:
+			cv2.imshow("Hand Sign Instructions", image)
+			print(f"📖 Instruction image loaded from: {image_path}")
+	except Exception as e:
+		print(f"Could not load instruction image: {e}")
+else:
+	print("⚠️  Hand sign instruction image not found")
 
 def print_result(result, output_image, timestamp_ms):
 	try:
@@ -102,25 +120,19 @@ options = mp.tasks.vision.HandLandmarkerOptions(
 	min_tracking_confidence=0.5,
 )
 
-# Initialize camera with AVFoundation backend for better performance on macOS
-cam = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
-
-# Set camera to highest FPS possible
-cam.set(cv2.CAP_PROP_FPS, 60)  # Request 60 FPS
-cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))  # Use MJPG codec for higher FPS
-cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Minimize buffer to reduce latency
+# Initialize camera with cross-platform support
+try:
+	cam, camera_fps, width, height, backend_name = initialize_camera(camera_index=0, target_fps=60)
+	print(f"Camera configured:")
+	print(f"  Resolution: {width}x{height}")
+	print(f"  FPS: {camera_fps}")
+	print(f"  Backend: {backend_name}")
+except RuntimeError as e:
+	print(f"Error: {e}")
+	exit(1)
 
 timestamp = 0
 frame_count = 0
-
-# Get actual camera FPS after configuration
-camera_fps = cam.get(cv2.CAP_PROP_FPS)
-width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
-print(f"Camera configured:")
-print(f"  Resolution: {width}x{height}")
-print(f"  FPS: {camera_fps}")
-print(f"  Backend: AVFoundation")
 
 # Create optimized display window
 cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
